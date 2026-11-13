@@ -107,7 +107,7 @@ URL=os.getenv('MAKEFUN_ENV_URL','')
 def post(p,b):return json.load(U.urlopen(URL+p,data=json.dumps(b).encode()))
 if URL:
  while 1:
-  g=post('/game',{});st=g['status']
-  if st=='done':break
-  while st=='your_move':
-   parse(g['fen']);x=choose();g=post('/move',{'game':g['game'],'move':f'{chr(97+x[0]&15)}{x[0]//16+1}{chr(97+x[1]&15)}{x[1]//16+1}{x[2].lower()}'});st=g['status']
+  g=post('/game',{})
+  if g['status']=='done':break
+  while g['status']=='your_move':
+   parse(g['fen']);x=choose();g=post('/move',{'game':g['game'],'move':f'{chr(97+(x[0]&15))}{x[0]//16+1}{chr(97+(x[1]&15))}{x[1]//16+1}{x[2].lower()}'})
