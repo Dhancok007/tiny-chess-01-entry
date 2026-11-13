@@ -1,139 +1,113 @@
-import json,os,base64,urllib.request as U
-V=dict(zip('PNBRQK',(100,320,330,500,900,0)))
-_d=[x-60 for x in base64.b64decode('PDw8PG5ubm5GRlBaQUFGVTw8PFBBNzI8QUZGKDw8PDweFBQKHhQUCh4UFAoeFBQKKB4eFDIoKChQUDw8UFpGPA==')]
-_T=[_d[:32],_d[32:]];Z=[0]*32
-TAB=dict(zip('PK',_T))
-KN=(-33,-31,-18,-14,14,18,31,33);KG=(-17,-16,-15,-1,1,15,16,17)
-DG=(-17,-15,15,17);SG=(-16,-1,1,16);DIRS={'N':KN,'K':KG,'B':DG,'R':SG,'Q':KG}
-SQ=[s for s in range(128)if not s&136]
-B=['.']*128;W=True;KP=[0,0];CR='';ND=0;CAP=99999;I=10**9
-def parse(fen):
- global W,CR,OS
- p=fen.split();B[:]=['.']*128;r,f=7,0
+import json,os,time,base64,zlib,urllib.request as U
+_a=0;_r=[_a:=(_a+b)&255 for b in zlib.decompress(base64.b85decode('c-k$H+irv~5JNql1flZN{p0qjyPM3VW?K}25;)^yKJj;b_-o|x6CmM;Fv8Fl?J#Sko^9~RQNZBhKlgPWb$y?Y;aAq!nOBi><#u@cMjD$p{~n0w8U|)R&v4Vk_UB;Dsu?ysUVdn(bpZ4mYl0}W?$DrnUuKr+Ejl@^X`51Xu)~68GPnyUcz4<RAWOVfiWgpMnuL0*k}DlpHBe`Asi>0eAzM<x_4ZbI#oc1g77tl4^|nv_EO%|nU`q8WxXE81$+M?A2pH&8aJ$te9eLzBV)id0;*Np'))]
+VM=(82,337,365,477,1025,0);VV=dict(zip('PNBRQK',VM));PM={};SQ=[s for s in range(128)if not s&136]
+for _i,_p in enumerate('PNBRQK'):
+ _l=[VM[_i]+(_r[_i*64+(7-(s>>4))*8+(s&7)]-128)*10 for s in range(128)];PM[_p]=_l;PM[_p.lower()]=[-x for x in _l[::-1]]
+KN=(-33,-31,-18,-14,14,18,31,33);KG=(-17,-16,-15,-1,1,15,16,17);DG=(-17,-15,15,17);SG=(-16,-1,1,16);CM={4:12,7:14,0:13,116:3,119:11,112:7}
+B=['.']*128;KP=[0,0];I=10**9
+def parse(f):
+ global W,CR,AM;p=f.split();B[:]=['.']*128;i=112
  for ch in p[0]:
-  if ch=='/':r,f=r-1,0
-  elif ch.isdigit():f+=int(ch)
-  else:B[r*16+f]=ch;f+=1
- KP[:]=map(B.index,'Kk')
- OS={s for s in SQ if B[s]!='.'}
- W=p[1]=='w';CR=p[2].strip('-')
-def attacked(s,bw):
- for dirs,ww in zip(((-17,-15)if bw else(15,17),KN,KG),'PNK'if bw else'pnk'):
-  for d in dirs:
+  if ch=='/':i-=24
+  elif ch.isdigit():i+=int(ch)
+  else:B[i]=ch;i+=1
+ KP[:]=map(B.index,'Kk');W=p[1]=='w';CR=0
+ for ch in p[2]:CR|={'K':1,'Q':2,'k':4,'q':8}.get(ch,0)
+ AM=sum(PM[B[s]][s]for s in SQ if B[s]!='.')
+def A(s,bw):
+ for ds,ww in zip((((15,17),(-17,-15))[bw],KN,KG),('pnk','PNK')[bw]):
+  for d in ds:
+   if not s+d&136 and B[s+d]==ww:return True
+ for ds,pp in((DG,'BQ'),(SG,'RQ')):
+  for d in ds:
    t=s+d
-   if not t&136 and B[t]==ww:return True
- for d in DG+SG:
-  t=s+d
-  while not t&136:
-   c=B[t]
-   if c!='.':
-    if c.isupper()==bw and(c.upper()=='Q'or c.upper()==('B'if abs(d)in(15,17)else'R')):return True
-    break
-   t+=d
+   while not t&136 and B[t]=='.':t+=d
+   if not t&136 and B[t].isupper()==bw and B[t].upper()in pp:return True
+ return 0
 def gen(cap=False):
- ms=[];ap=ms.append;up=16 if W else-16;last,f6=(6,1)if W else(1,6);pr='Q'if W else'q'
+ ms=[];ap=ms.append;up=16 if W else-16;last,fst=(6,1)if W else(1,6);PR='QNRB'if W else'qnrb'
  for s in SQ:
-  c=B[s]
-  if c=='.'or c.isupper()!=W:continue
-  u=c.upper();r=s>>4
+  x=B[s]
+  if x=='.'or x.isupper()!=W:continue
+  u=x.upper();r=s>>4
   if u=='P':
    t=s+up
    if B[t]=='.':
-    if r==last:ap((s,t,pr,'.'))
+    if r==last:
+     for z in PR:ap((s,t,z,'.'))
     elif not cap:
      ap((s,t,'','.'))
-     if r==f6 and B[t+up]=='.':ap((s,t+up,'','.'))
+     if r==fst and B[t+up]=='.':ap((s,t+up,'','.'))
    for d in(up-1,up+1):
     t=s+d
     if t&136:continue
     v=B[t]
-    if v!='.'and v.isupper()!=W:ap((s,t,pr if r==last else'',v))
+    if v!='.'and v.isupper()!=W:
+     if r==last:
+      for z in PR:ap((s,t,z,v))
+     else:ap((s,t,'',v))
   else:
-   for d in DIRS[u]:
+   for d in(KN,KG,DG,SG,KG)['NKBRQ'.index(u)]:
     t=s+d
     while not t&136:
      v=B[t]
-     if v=='.'and not cap:ap((s,t,'','.'))
-     elif v!='.'and v.isupper()!=W:ap((s,t,'',v))
+     if v=='.'and not cap or v!='.'and v.isupper()!=W:ap((s,t,'',v))
      if v!='.'or u in'NK':break
      t+=d
-   if u=='K'and not cap and s==KP[not W]and('K'if W else'k')in CR and B[s+1]==B[s+2]=='.'and not attacked(s,not W)and not attacked(s+1,not W)and not attacked(s+2,not W):ap((s,s+2,'','.'))
+   if u=='K'and not cap and s==KP[not W]:
+    for sg,bt in((1,1),(-1,2)):
+     if CR&bt*(1 if W else 4)and B[s+sg]=='.'and B[s+2*sg]=='.'and(sg>0 or B[s-3]=='.')and not any(A(s+k*sg,not W)for k in(0,1,2)):ap((s,s+2*sg,'','.'))
  return ms
 def make(m):
- global W,CR
- s,t,pr,cap=m;c=B[s];o=(c,CR)
- B[t]=pr if pr else c;B[s]='.'
- OS.discard(s);OS.add(t)
- if c in'Kk':
-  KP[c=='k']=t
-  if abs(t-s)==2:B[s+1]=B[s+3];B[s+3]='.';OS.discard(s+3);OS.add(s+1)
- for ch,sq in(('K',7),('k',119)):
-  if c==ch or s==sq or t==sq:CR=CR.replace(ch,'')
- W=not W
- return o
-def unmake(m,o):
- global W,CR
- W=not W;s,t,pr,cap=m;c,CR=o;B[s]=c;B[t]=cap
- OS.discard(t);OS.add(s)
- if cap!='.':OS.add(t)
- if c in'Kk':
-  KP[c=='k']=s
-  if abs(t-s)==2:B[s+3]=B[s+1];B[s+1]='.';OS.discard(s+1);OS.add(s+3)
-def ev():
- s=0
- for sq in OS:
-  c=B[sq]
-  u=c.upper();r,f=divmod(sq,16);w=c.isupper()
-  mf=(f,7-f)[f>3];j=((7-r)if w else r)*4+mf;v=V[u]+TAB.get(u,Z)[j]
-  if u in'NBRQ':v+=(mf+(r,7-r)[r>3])*3
-  s+=v if w else-v
- return s if W else-s
-ordered=lambda ms:sorted(ms,key=lambda m:((V[m[3].upper()]*10-V[B[m[0]].upper()]//10)if m[3]!='.'else 0)+900*bool(m[2]),reverse=True)
-def search(d,a,b):
- global ND
- ND+=1
- if ND>CAP:raise Exception
- chk=attacked(KP[not W],not W)
- if d<-6:return-100000-d if chk else ev()
- if d<=0 and not chk:
-  st=ev()
-  if st>=b:return st
-  if st>a:a=st
-  ms=gen(True)
- else:ms=gen()
- ok=False
- for m in ordered(ms):
-  u=make(m)
-  if attacked(KP[W],W):unmake(m,u);continue
-  ok=True;sc=-search(d-1,-b,-a);unmake(m,u)
+ global W,CR,AM;s,t,pr,cap=m;x=B[s];AM-=PM[x][s]
+ if cap!='.':AM-=PM[cap][t]
+ n=pr or x;B[t]=n;B[s]='.';AM+=PM[n][t]
+ if x in'Kk':
+  KP[x=='k']=t
+  if abs(t-s)==2:
+   rs,rt=(s+3,s+1)if t>s else(s-4,s-1);rc=B[rs];B[rt]=rc;B[rs]='.';AM+=PM[rc][rt]-PM[rc][rs]
+ CR&=CM.get(s,15)&CM.get(t,15);W=not W
+def O(ms):
+ return sorted(ms,key=lambda m:VV.get(m[3].upper(),0)*10-VV[B[m[0]].upper()]//10+2000*bool(m[2]),reverse=True)
+def S(d,a,b):
+ global ND,BM,B,CR,AM,KP,W;ND+=1
+ if ND&255==0 and time.time()>DL:raise 1
+ chk=A(KP[not W],not W)
+ qs=d<=0
+ if qs:a=max(a,AM if W else-AM)
+ best=-I
+ for m in O(gen(qs and 1)):
+  u=(B[:],CR,AM,KP[:],W);make(m)
+  if A(KP[W],W):B,CR,AM,KP,W=u;continue
+  if best==-I or qs:sc=-S(d-1,-b,-a)
+  elif d>=3 and m[3]=='.'and not m[2]and not chk:
+   sc=-S(d-2,-b,-a)
+  else:sc=-S(d-1,-b,-a)
+  B,CR,AM,KP,W=u
+  if sc>best:
+   best=sc
+   if d==RT:BM=m
   if sc>a:a=sc
   if a>=b:break
- if not ok:return-100000-d if chk else a if d<=0 else 0
- return a
+ return a if qs else-I if best==-I and chk else 0 if best==-I else best
 def choose():
- global ND
- ms=[]
+ global ND,DL,BM,RT,B,CR,AM,KP,W;ND=0;DL=time.time()+3.5;legal=[]
  for m in gen():
-  u=make(m)
-  if not attacked(KP[W],W):ms.append(m)
-  unmake(m,u)
- best=ms[0];dep=1
- while dep<10:
-  ND=0;a=-I;cur=best
-  try:
-   for m in ordered(ms):
-    u=make(m);sc=-search(dep-1,-I,I);unmake(m,u)
-    if sc>a:a,cur=sc,m
-  except Exception:break
-  best=cur;dep+=1
- return best
+  u=(B[:],CR,AM,KP[:],W);make(m)
+  if not A(KP[W],W):legal.append(m)
+  B,CR,AM,KP,W=u
+ BM=legal[0];dep=1
+ while 1:
+  sv=BM;RT=dep
+  try:S(dep,-I,I)
+  except TypeError:BM=sv;break
+  dep+=1
+ return BM
 URL=os.getenv('MAKEFUN_ENV_URL','')
-def post(p,b):
- return json.load(U.urlopen(U.Request(URL+p,data=json.dumps(b).encode())))
+def post(p,b):return json.load(U.urlopen(URL+p,data=json.dumps(b).encode()))
 if URL:
  while 1:
-  g=post('/game',{})
-  if g['status']=='done':break
-  while g['status']=='your_move':
-   parse(g['fen']);x=choose();u='abcdefgh'[x[0]&15]+str(x[0]//16+1)+'abcdefgh'[x[1]&15]+str(x[1]//16+1)+x[2].lower()
-   g=post('/move',{'game':g['game'],'move':u})
+  g=post('/game',{});st=g['status']
+  if st=='done':break
+  while st=='your_move':
+   parse(g['fen']);x=choose();g=post('/move',{'game':g['game'],'move':f'{chr(97+x[0]&15)}{x[0]//16+1}{chr(97+x[1]&15)}{x[1]//16+1}{x[2].lower()}'});st=g['status']
